@@ -16,29 +16,17 @@ InfoCommand::InfoCommand(int argc, char** argv)
 
 void InfoCommand::execute()
 {
-    struct stat fileInfo;
+    struct stat fileStat;
     
     // Check if valid file info has been returned
-    if (stat(args[0].c_str(), &fileInfo) != 0) 
+    if (stat(args[0].c_str(), &fileStat) != 0) 
     {
         std::cout << "File error: " << strerror(errno) << "\n";
         return;
     }
 
-    // Set file info string variables
-    FileInfo info;
-    // Get permissions for the file
-    info.permissions = getPermissions(fileInfo);
-    // Get number of hard links to the file
-    info.numLinks = std::to_string(static_cast<int>(fileInfo.st_nlink));
-    // Get number of hard links to the file
-    info.owner = getpwuid(fileInfo.st_uid)->pw_name ? getpwuid(fileInfo.st_uid)->pw_name : "-";
-    // Get file size in bytes or number of bytes allocated to directory
-    info.size = std::to_string(static_cast<int>(fileInfo.st_size));
-    // Get time and date of last modification
-    info.lastModified = getLastModified(fileInfo);
-    // Get file name from args
-    info.name = args[0];
+    // Set file info
+    FileInfo info = setFileInfo(fileStat);
     
     // Get the length of the longest string to set the width of each column (to line them up)
     int permissionsMax = std::max(std::string("Permissions").length(), info.permissions.length());
@@ -68,21 +56,20 @@ void InfoCommand::execute()
     Printer::print(info.name, nameMax + padding, TextColor::CYAN, TextEmphasis::BOLD);
 }
 
-std::string InfoCommand::getLastModified(const struct stat &fileInfo)
+std::string InfoCommand::getLastModified(const struct stat &fileStat)
 {
-    char* buffer = new char[31];
-    std::strftime(buffer, sizeof buffer, "%a %d %b %Y at %H:%M:%S", std::localtime(&fileInfo.st_mtimespec.tv_sec));
+    char buffer[30];
+    std::strftime(buffer, sizeof buffer, "%a %d %b %Y at %H:%M", std::localtime(&fileStat.st_mtimespec.tv_sec));
 
     std::string lastModified = buffer;
-    delete[] buffer;
 
     return lastModified;
 }
 
-std::string InfoCommand::getPermissions(const struct stat &fileInfo)
+std::string InfoCommand::getPermissions(const struct stat &fileStat)
 {
     std::string permsAsString;
-    mode_t perm = fileInfo.st_mode;
+    mode_t perm = fileStat.st_mode;
     
     // Check for directory
     permsAsString += S_ISDIR(perm) ? "d" : "-";
@@ -106,6 +93,25 @@ std::string InfoCommand::getPermissions(const struct stat &fileInfo)
     permsAsString += (perm & S_IXOTH) ? "x" : "-";
 
     return permsAsString;
+}
+
+FileInfo InfoCommand::setFileInfo(const struct stat& fileStat)
+{
+    FileInfo info;
+    // Get permissions for the file
+    info.permissions = getPermissions(fileStat);
+    // Get number of hard links to the file
+    info.numLinks = std::to_string(static_cast<int>(fileStat.st_nlink));
+    // Get number of hard links to the file
+    info.owner = getpwuid(fileStat.st_uid)->pw_name ? getpwuid(fileStat.st_uid)->pw_name : "-";
+    // Get file size in bytes or number of bytes allocated to directory
+    info.size = std::to_string(static_cast<int>(fileStat.st_size));
+    // Get time and date of last modification
+    info.lastModified = getLastModified(fileStat);
+    // Get file name from args
+    info.name = args[0];
+
+    return info;
 }
 
 bool InfoCommand::hasValidArgsAndFlags()
