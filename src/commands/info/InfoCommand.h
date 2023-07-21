@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "../Command.h"
 
 /**
@@ -21,7 +20,10 @@ class InfoCommand : public Command
 public:
     InfoCommand(int argc, char** argv);
     void execute() override;
+    bool hasValidArgsAndFlags() override;
+
+private:
     std::string getPermissions(const struct stat& fileInfo);
     std::string getLastModified(const struct stat& fileInfo);
-    bool hasValidArgsAndFlags() override;
+    FileInfo setFileInfo(const struct stat& fileInfo);
 };
