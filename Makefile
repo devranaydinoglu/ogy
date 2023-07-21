@@ -177,6 +177,30 @@ src/commands/info/InfoCommand.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/info/InfoCommand.cpp.s
 .PHONY : src/commands/info/InfoCommand.cpp.s
 
+src/commands/list/ListCommand.o: src/commands/list/ListCommand.cpp.o
+.PHONY : src/commands/list/ListCommand.o
+
+# target to build an object file
+src/commands/list/ListCommand.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/list/ListCommand.cpp.o
+.PHONY : src/commands/list/ListCommand.cpp.o
+
+src/commands/list/ListCommand.i: src/commands/list/ListCommand.cpp.i
+.PHONY : src/commands/list/ListCommand.i
+
+# target to preprocess a source file
+src/commands/list/ListCommand.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/list/ListCommand.cpp.i
+.PHONY : src/commands/list/ListCommand.cpp.i
+
+src/commands/list/ListCommand.s: src/commands/list/ListCommand.cpp.s
+.PHONY : src/commands/list/ListCommand.s
+
+# target to generate assembly for a file
+src/commands/list/ListCommand.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/list/ListCommand.cpp.s
+.PHONY : src/commands/list/ListCommand.cpp.s
+
 src/ogy.o: src/ogy.cpp.o
 .PHONY : src/ogy.o
 
@@ -216,6 +240,9 @@ help:
 	@echo "... src/commands/info/InfoCommand.o"
 	@echo "... src/commands/info/InfoCommand.i"
 	@echo "... src/commands/info/InfoCommand.s"
+	@echo "... src/commands/list/ListCommand.o"
+	@echo "... src/commands/list/ListCommand.i"
+	@echo "... src/commands/list/ListCommand.s"
 	@echo "... src/ogy.o"
 	@echo "... src/ogy.i"
 	@echo "... src/ogy.s"
