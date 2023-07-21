@@ -51,8 +51,11 @@ protected:
 public:
     void determineCommand();
 
-private:
+protected:
     virtual void execute() {};
-    void setArgsAndFlags();
     virtual bool hasValidArgsAndFlags() {return false;};
+    bool containsFlag(const std::string& flag);
+
+private:
+    void setArgsAndFlags();
 };
