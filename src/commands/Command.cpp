@@ -3,6 +3,7 @@
 
 #include "Command.h"
 #include "./info//InfoCommand.h"
+#include "./list/ListCommand.h"
 
 Command::Command(int argc, char** argv)
     : errorMessage("")
@@ -51,12 +52,23 @@ void Command::determineCommand()
             }
             
             infoCom.execute();
-
             return;
         }
         case CommandType::LS:
+        {
             std::cout << "Command passed: ls\n";
-            break;
+
+            ListCommand listCom(argc, argv);
+
+            if (!listCom.hasValidArgsAndFlags())
+            {
+                std::cout << listCom.errorMessage;
+                return;
+            }
+
+            listCom.execute();
+            return;
+        }
         case CommandType::FIND:
             std::cout << "Command passed: find\n";
             break;
@@ -73,4 +85,14 @@ void Command::setArgsAndFlags()
         if (argv[i][0] == '-') flags.emplace_back(argv[i]);
         else args.emplace_back(argv[i]);
     }
+}
+
+bool Command::containsFlag(const std::string& flag)
+{
+    for (const auto& f : flags)
+    {
+        if (f == flag) return true;
+    }
+
+    return false;
 }
