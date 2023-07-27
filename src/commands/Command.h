@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <string_view>
 
 enum class CommandType
 {
@@ -54,7 +55,7 @@ public:
 protected:
     virtual void execute() {};
     virtual bool hasValidArgsAndFlags() {return false;};
-    bool containsFlag(const std::string& flag);
+    bool containsFlag(std::string_view flag);
 
 private:
     void setArgsAndFlags();
