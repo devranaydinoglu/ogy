@@ -9,11 +9,13 @@ enum class TextColor
     YELLOW,
     MAGENTA,
     CYAN,
-    GRAY
+    GRAY,
+    WHITE
 };
 
 enum class TextEmphasis
 {
+    NORMAL,
     BOLD,
     ITALIC,
     UNDERLINED,
@@ -28,10 +30,12 @@ public:
         {TextColor::YELLOW, "33"},
         {TextColor::MAGENTA, "35"},
         {TextColor::CYAN, "36"},
-        {TextColor::GRAY, "90"}
+        {TextColor::GRAY, "90"},
+        {TextColor::WHITE, "37"}
     };
 
     inline static std::map<TextEmphasis, std::string> emphasesToStringMapping = {
+        {TextEmphasis::NORMAL, "0"},
         {TextEmphasis::BOLD, "1"},
         {TextEmphasis::ITALIC, "3"},
         {TextEmphasis::UNDERLINED, "4"},
