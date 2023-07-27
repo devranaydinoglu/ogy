@@ -2,8 +2,8 @@
 
 #include <ios>
 #include <iostream>
-#include <string>
 #include <iomanip>
+#include <string_view>
 
 #include "../formatter/Formatter.h"
 
@@ -13,7 +13,7 @@
 class Printer
 {
 public:
-    static void print(const std::string& str, int width, TextColor textColor, TextEmphasis textEmphasis)
+    static void print(std::string_view str, int width, TextColor textColor, TextEmphasis textEmphasis)
     {
         std::cout << std::left << "\033[" << std::setw(0) << Formatter::emphasesToStringMapping[textEmphasis] << ";" 
         << Formatter::colorsToStringMapping[textColor] << "m" << std::setw(width) << std::setfill(' ') << str << "\033[0m";
