@@ -1,15 +1,15 @@
 #include <iostream>
 #include <string>
-#include <filesystem>
 #include <sys/errno.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include <vector>
 
 #include "ListCommand.h"
 #include "../../printer/Printer.h"
 
-using Path = std::filesystem::path;
 using DirIterator = std::filesystem::directory_iterator;
+using RecDirIterator = std::filesystem::recursive_directory_iterator;
 
 ListCommand::ListCommand(int argc, char** argv)
     : Command(argc, argv)
@@ -20,67 +20,72 @@ void ListCommand::execute()
 {
     Path currentPath = std::filesystem::current_path();
     bool printHeader = true;
-    int filesCounter = 0;
+    
+    std::vector<FileInfo> filesInfo;
 
-    for (const auto& entry : DirIterator(currentPath))
+    for (const auto& entry : DirIterator(currentPath, std::filesystem::directory_options::skip_permission_denied))
     {
-        std::string fileName = entry.path().filename();
         
         struct stat fileStat;
         
         // Check if valid file info has been returned
-        if (stat(fileName.c_str(), &fileStat) != 0)
+        if (stat(entry.path().c_str(), &fileStat) != 0)
         {
             std::cout << "File error: " << strerror(errno) << "\n";
             return;
         }
         
+        std::string fileName = entry.path().filename();
+
         if (fileName[0] == '.' && !containsFlag("-all")) continue;
 
-        FileInfo info = setFileInfo(fileStat);
+        filesInfo.emplace_back(setFileInfo(fileStat, entry.path()));
 
-        int permissionsMax;
-        int numLinksMax;
-        int ownerMax;
-        int sizeMax;
-        int lastModifiedMax;
-        int nameMax;
-        int padding = 3;
+    }
 
-        filesCounter++;
+    if (filesInfo.size() < 1) return;
 
-        if (printHeader)
-        {
-            // Get the length of the longest string to set the width of each column (to line them up)
-            permissionsMax = std::max(std::string("Permissions").length(), info.permissions.length());
-            numLinksMax = std::max(std::string("Links").length(), info.numLinks.length());
-            ownerMax = std::max(std::string("Owner").length(), info.owner.length());
-            sizeMax = std::max(std::string("Size").length(), info.size.length());
-            lastModifiedMax = std::max(std::string("Last Modified").length(), info.lastModified.length());
-            nameMax = std::max(std::string("File Name").length(), fileName.length());
+    int permissionsMax = 11;
+    int numLinksMax = 5;
+    int ownerMax = 5;
+    int sizeMax = 4;
+    int lastModifiedMax = 13;
+    int nameMax = 9;
 
-            // Print headers
-            Printer::print(" ", 2 + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-            Printer::print("Permissions", permissionsMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-            Printer::print("Links", numLinksMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-            Printer::print("Owner", ownerMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-            Printer::print("Size",  sizeMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-            Printer::print("Last Modified", lastModifiedMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-            Printer::print("File Name", nameMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-            std::cout << std::endl;
+    // Get the length of the longest string to set the width of each column (to line them up)
+    for (const auto& info : filesInfo)
+    {
+        permissionsMax = std::max(permissionsMax, static_cast<int>(info.permissions.length()));
+        numLinksMax = std::max(numLinksMax, static_cast<int>(info.numLinks.length()));
+        ownerMax = std::max(ownerMax, static_cast<int>(info.owner.length()));
+        sizeMax = std::max(sizeMax, static_cast<int>(info.size.length()));
+        lastModifiedMax = std::max(lastModifiedMax, static_cast<int>(info.lastModified.length()));
+        nameMax = std::max(nameMax, static_cast<int>(info.name.length()));
+    }
 
-            printHeader = false;
-        }
+    int padding = 2;
 
-            Printer::print(std::to_string(filesCounter), 2 + padding, TextColor::GRAY, TextEmphasis::BOLD);
-            // Print info of each header
-            Printer::print(info.permissions, permissionsMax + padding, TextColor::CYAN, TextEmphasis::BOLD);
-            Printer::print(info.numLinks, numLinksMax + padding, TextColor::CYAN, TextEmphasis::BOLD);
-            Printer::print(info.owner, ownerMax + padding, TextColor::CYAN, TextEmphasis::BOLD);
-            Printer::print(info.size, sizeMax + padding, TextColor::CYAN, TextEmphasis::BOLD);
-            Printer::print(info.lastModified, lastModifiedMax + padding, TextColor::CYAN, TextEmphasis::BOLD);
-            Printer::print(fileName, nameMax + padding, TextColor::CYAN, TextEmphasis::BOLD);
-            std::cout << std::endl;
+    // Print headers
+    Printer::print(" ", 2 + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Permissions", permissionsMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Links", numLinksMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Owner", ownerMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Size",  sizeMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Last Modified", lastModifiedMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("File Name", nameMax, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    std::cout << std::endl;
+
+    for (size_t i = 0; i < filesInfo.size(); i++)
+    {
+        Printer::print(std::to_string(i + 1), 2 + padding, TextColor::GRAY, TextEmphasis::BOLD);
+        // Print info of each header
+        Printer::print(filesInfo[i].permissions, permissionsMax + padding, TextColor::GREEN, TextEmphasis::BOLD);
+        Printer::print(filesInfo[i].numLinks, numLinksMax + padding, TextColor::MAGENTA, TextEmphasis::BOLD);
+        Printer::print(filesInfo[i].owner, ownerMax + padding, TextColor::CYAN, TextEmphasis::BOLD);
+        Printer::print(filesInfo[i].size, sizeMax + padding, TextColor::YELLOW, TextEmphasis::BOLD);
+        Printer::print(filesInfo[i].lastModified, lastModifiedMax + padding, TextColor::GREEN, TextEmphasis::BOLD);
+        Printer::print(filesInfo[i].name, nameMax, TextColor::MAGENTA, TextEmphasis::BOLD);
+        std::cout << "\n";
     }
 }
 
@@ -123,7 +128,7 @@ std::string ListCommand::getPermissions(const struct stat &fileStat)
     return permsAsString;
 }
 
-FileInfo ListCommand::setFileInfo(const struct stat& fileStat)
+FileInfo ListCommand::setFileInfo(const struct stat& fileStat, const Path& entryPath)
 {
     FileInfo info;
     // Get permissions for the file
@@ -132,11 +137,37 @@ FileInfo ListCommand::setFileInfo(const struct stat& fileStat)
     info.numLinks = std::to_string(static_cast<int>(fileStat.st_nlink));
     // Get number of hard links to the file
     info.owner = getpwuid(fileStat.st_uid)->pw_name ? getpwuid(fileStat.st_uid)->pw_name : "-";
-    // Get file size in bytes or number of bytes allocated to directory
-    info.size = std::to_string(static_cast<int>(fileStat.st_size));
+
+    // Get file or directory size in bytes
+    off_t totalSize = 0;
+    mode_t perm = fileStat.st_mode;
+
+    if (S_ISDIR(perm))
+    {
+        for (const auto& entry : RecDirIterator(entryPath, std::filesystem::directory_options::skip_permission_denied))
+        {
+            struct stat fileStat;
+
+            // Check if valid file info has been returned
+            if (stat(entry.path().c_str(), &fileStat) != 0)
+            {
+                break;
+            }
+            totalSize += fileStat.st_size;
+        }
+    }
+    else
+    {
+        totalSize = fileStat.st_size;
+    }
+
+    info.size = std::to_string(totalSize);
+
     // Get time and date of last modification
     info.lastModified = getLastModified(fileStat);
-    
+    // Get file name from path
+    info.name = entryPath.filename();
+
     return info;
 }
 
