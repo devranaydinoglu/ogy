@@ -87,7 +87,7 @@ void Command::setArgsAndFlags()
     }
 }
 
-bool Command::containsFlag(const std::string& flag)
+bool Command::containsFlag(std::string_view flag)
 {
     for (const auto& f : flags)
     {
