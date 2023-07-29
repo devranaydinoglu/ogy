@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "ListCommand.h"
+#include "../info/InfoCommand.h"
 #include "../../printer/Printer.h"
 
 using DirIterator = std::filesystem::directory_iterator;
@@ -44,6 +45,9 @@ void ListCommand::execute()
     }
 
     if (filesInfo.size() < 1) return;
+
+    Printer::print("Current Path: ", 0, TextColor::GRAY, TextEmphasis::NORMAL);
+    Printer::print(currentPath.string() + "\n", 0, TextColor::WHITE, TextEmphasis::NORMAL);
 
     int permissionsMax = 11;
     int numLinksMax = 5;
