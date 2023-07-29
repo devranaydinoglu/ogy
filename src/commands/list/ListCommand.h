@@ -3,7 +3,8 @@
 #include <filesystem>
 
 #include "../Command.h"
-#include "../info/InfoCommand.h"
+
+struct FileInfo;
 
 using Path = std::filesystem::path;
 
