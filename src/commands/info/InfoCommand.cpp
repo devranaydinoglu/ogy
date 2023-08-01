@@ -12,6 +12,10 @@
 InfoCommand::InfoCommand(int argc, char** argv)
     : Command(argc, argv)
 {
+    commandInfo.name = "info";
+    commandInfo.description = "Show info about the specified file.";
+    commandInfo.numArgs = 1;
+    commandInfo.numFlags = 0;
 }
 
 void InfoCommand::execute()
@@ -116,19 +120,19 @@ FileInfo InfoCommand::setFileInfo(const struct stat& fileStat)
 
 bool InfoCommand::hasValidArgsAndFlags()
 {
-    if (args.size() < 1)
+    if (args.size() < commandInfo.numArgs)
     {
         errorMessage = "No arguments passed to 'info' command. Use 'ogy help' to view the expected arguments.\n";
         return false;
     }
-    if (args.size() > 1)
+    if (args.size() > commandInfo.numArgs)
     {
         errorMessage = "Too many arguments passed to 'info' command. Use 'ogy help' to view the expected arguments.\n";
         return false;
     }
-    if (flags.size() > 0)
+    if (flags.size() > commandInfo.numFlags)
     {
-        errorMessage = "'info' command doesn't expect any flags. Use 'ogy help' to view the expected arguments.\n";
+        errorMessage = "'info' command doesn't accept any flags. Use 'ogy help' to view the expected arguments.\n";
         return false;
     }
 

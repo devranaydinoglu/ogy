@@ -20,7 +20,7 @@ struct CommandInfo
     std::string name;
     std::string description;
     int numArgs;
-    std::map<int, std::string> args;
+    int numFlags;
 };
 
 class Command
@@ -39,7 +39,7 @@ public:
     };
 
 protected:
-    CommandInfo info;
+    CommandInfo commandInfo;
     std::string command;
     std::vector<std::string> args; 
     std::vector<std::string> flags;

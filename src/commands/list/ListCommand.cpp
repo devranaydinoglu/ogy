@@ -15,6 +15,10 @@ using RecDirIterator = std::filesystem::recursive_directory_iterator;
 ListCommand::ListCommand(int argc, char** argv)
     : Command(argc, argv)
 {
+    commandInfo.name = "list";
+    commandInfo.description = "List info about items in the current directory. Include the `-all` flag to include hidden items.";
+    commandInfo.numArgs = 0;
+    commandInfo.numFlags = 1;
 }
 
 void ListCommand::execute()
@@ -177,12 +181,12 @@ FileInfo ListCommand::setFileInfo(const struct stat& fileStat, const Path& entry
 
 bool ListCommand::hasValidArgsAndFlags()
 {
-    if (args.size() > 0)
+    if (args.size() > commandInfo.numArgs)
     {
         errorMessage = "Too many arguments passed to 'ls' command. Use 'ogy help' to view the expected arguments.\n";
         return false;
     }
-    if (flags.size() > 1)
+    if (flags.size() > commandInfo.numFlags)
     {
         errorMessage = "Too many flags passed to 'ls' command. Use 'ogy help' to view the expected flags.\n";
         return false;
