@@ -153,6 +153,30 @@ src/commands/Command.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/Command.cpp.s
 .PHONY : src/commands/Command.cpp.s
 
+src/commands/help/HelpCommand.o: src/commands/help/HelpCommand.cpp.o
+.PHONY : src/commands/help/HelpCommand.o
+
+# target to build an object file
+src/commands/help/HelpCommand.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/help/HelpCommand.cpp.o
+.PHONY : src/commands/help/HelpCommand.cpp.o
+
+src/commands/help/HelpCommand.i: src/commands/help/HelpCommand.cpp.i
+.PHONY : src/commands/help/HelpCommand.i
+
+# target to preprocess a source file
+src/commands/help/HelpCommand.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/help/HelpCommand.cpp.i
+.PHONY : src/commands/help/HelpCommand.cpp.i
+
+src/commands/help/HelpCommand.s: src/commands/help/HelpCommand.cpp.s
+.PHONY : src/commands/help/HelpCommand.s
+
+# target to generate assembly for a file
+src/commands/help/HelpCommand.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/help/HelpCommand.cpp.s
+.PHONY : src/commands/help/HelpCommand.cpp.s
+
 src/commands/info/InfoCommand.o: src/commands/info/InfoCommand.cpp.o
 .PHONY : src/commands/info/InfoCommand.o
 
@@ -237,6 +261,9 @@ help:
 	@echo "... src/commands/Command.o"
 	@echo "... src/commands/Command.i"
 	@echo "... src/commands/Command.s"
+	@echo "... src/commands/help/HelpCommand.o"
+	@echo "... src/commands/help/HelpCommand.i"
+	@echo "... src/commands/help/HelpCommand.s"
 	@echo "... src/commands/info/InfoCommand.o"
 	@echo "... src/commands/info/InfoCommand.i"
 	@echo "... src/commands/info/InfoCommand.s"

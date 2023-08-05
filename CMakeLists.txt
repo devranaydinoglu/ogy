@@ -12,6 +12,7 @@ set(SOURCE_FILES
     src/commands/Command.cpp
     src/commands/info/InfoCommand.cpp
     src/commands/list/ListCommand.cpp
+    src/commands/help/HelpCommand.cpp
 )
 
 add_executable(ogy ${SOURCE_FILES})
