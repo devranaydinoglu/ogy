@@ -4,9 +4,10 @@
 #include "Command.h"
 #include "./info//InfoCommand.h"
 #include "./list/ListCommand.h"
+#include "./help/HelpCommand.h"
 
 Command::Command(int argc, char** argv)
-    : errorMessage("")
+    : errorMessage(""), commandInfo()
 {
     this->argc = argc;
     this->argv = argv;
@@ -14,13 +15,13 @@ Command::Command(int argc, char** argv)
     command = argv[1];
     setArgsAndFlags();
 
-    std::cout << "------------------------------\n";
-    std::cout << "Command:\n";
-    std::cout << "Number of command arguments passed:" << argc - 1 << "\n";
-    std::cout << "command: " << command << "\n";
-    for (int i = 0; i < args.size(); i++) std::cout << "args: " << args[i] << "\n";
-    for (int i = 0; i < flags.size(); i++) std::cout << "flags: " << flags[i] << "\n";
-    std::cout << "------------------------------\n\n";
+    // std::cout << "------------------------------\n";
+    // std::cout << "Command:\n";
+    // std::cout << "Number of command arguments passed:" << argc - 1 << "\n";
+    // std::cout << "command: " << command << "\n";
+    // for (int i = 0; i < args.size(); i++) std::cout << "args: " << args[i] << "\n";
+    // for (int i = 0; i < flags.size(); i++) std::cout << "flags: " << flags[i] << "\n";
+    // std::cout << "------------------------------\n\n";
 }
 
 void Command::determineCommand()
@@ -33,13 +34,22 @@ void Command::determineCommand()
             std::cout << "Command not recognized.\n";
             break;
         case CommandType::HELP:
-            std::cout << "Command passed: help\n";
-            break;
+        {
+            HelpCommand helpCom(argc, argv);
+
+            if (!helpCom.hasValidArgsAndFlags())
+            {
+                std::cout << helpCom.errorMessage;
+                return;
+            }
+
+            helpCom.execute();
+            return;
+        }
+        
         case CommandType::CREATE:
-            std::cout << "Command passed: create\n";
             break;
         case CommandType::CD:
-            std::cout << "Command passed: cd\n";
             break;
         case CommandType::INFO:
         {
@@ -56,8 +66,6 @@ void Command::determineCommand()
         }
         case CommandType::LS:
         {
-            std::cout << "Command passed: ls\n";
-
             ListCommand listCom(argc, argv);
 
             if (!listCom.hasValidArgsAndFlags())
@@ -70,7 +78,6 @@ void Command::determineCommand()
             return;
         }
         case CommandType::FIND:
-            std::cout << "Command passed: find\n";
             break;
         default:
             std::cout << "No valid command passed\n";
