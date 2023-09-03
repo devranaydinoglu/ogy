@@ -26,17 +26,16 @@ void ListCommand::execute()
     Path currentPath = std::filesystem::current_path();
     bool printHeader = true;
     
-    std::vector<FileInfo> filesInfo;
+    std::vector<CommonFileInfo> filesInfo;
 
     for (const auto& entry : DirIterator(currentPath, std::filesystem::directory_options::skip_permission_denied))
     {
-        
         struct stat fileStat;
         
         // Check if valid file info has been returned
         if (stat(entry.path().c_str(), &fileStat) != 0)
         {
-            std::cout << "File error: " << strerror(errno) << "\n";
+            std::cout << "Error: " << strerror(errno) << "\n";
             return;
         }
         
@@ -53,94 +52,32 @@ void ListCommand::execute()
     Printer::print("Current Path: ", 0, TextColor::GRAY, TextEmphasis::NORMAL);
     Printer::print(currentPath.string() + "\n", 0, TextColor::WHITE, TextEmphasis::NORMAL);
 
-    int permissionsMax = 11;
-    int numLinksMax = 5;
-    int ownerMax = 5;
-    int sizeMax = 4;
-    int lastModifiedMax = 13;
-    int nameMax = 9;
-
+    CommonFileInfoPadding padding;
+    
     // Get the length of the longest string to set the width of each column (to line them up)
     for (const auto& info : filesInfo)
     {
-        permissionsMax = std::max(permissionsMax, static_cast<int>(info.permissions.length()));
-        numLinksMax = std::max(numLinksMax, static_cast<int>(info.numLinks.length()));
-        ownerMax = std::max(ownerMax, static_cast<int>(info.owner.length()));
-        sizeMax = std::max(sizeMax, static_cast<int>(info.size.length()));
-        lastModifiedMax = std::max(lastModifiedMax, static_cast<int>(info.lastModified.length()));
-        nameMax = std::max(nameMax, static_cast<int>(info.name.length()));
+        padding = Command::getCommonFileInfoPadding(info);
     }
 
-    int padding = 2;
-
     // Print headers
-    Printer::print(" ", 2 + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("Permissions", permissionsMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("Links", numLinksMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("Owner", ownerMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("Size",  sizeMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("Last Modified", lastModifiedMax + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("File Name", nameMax, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    std::cout << std::endl;
+    Printer::print(" ", 2 + 2, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Command::printCommonHeaders(padding);
 
     for (size_t i = 0; i < filesInfo.size(); i++)
     {
-        Printer::print(std::to_string(i + 1), 2 + padding, TextColor::GRAY, TextEmphasis::BOLD);
+        Printer::print(std::to_string(i + 1), 2 + 2, TextColor::GRAY, TextEmphasis::BOLD);
+        
         // Print info of each header
-        Printer::print(filesInfo[i].permissions, permissionsMax + padding, TextColor::GREEN, TextEmphasis::BOLD);
-        Printer::print(filesInfo[i].numLinks, numLinksMax + padding, TextColor::MAGENTA, TextEmphasis::BOLD);
-        Printer::print(filesInfo[i].owner, ownerMax + padding, TextColor::CYAN, TextEmphasis::BOLD);
-        Printer::print(filesInfo[i].size, sizeMax + padding, TextColor::YELLOW, TextEmphasis::BOLD);
-        Printer::print(filesInfo[i].lastModified, lastModifiedMax + padding, TextColor::GREEN, TextEmphasis::BOLD);
-        Printer::print(filesInfo[i].name, nameMax, TextColor::MAGENTA, TextEmphasis::BOLD);
-        std::cout << "\n";
+        Command::printCommonFileInfo(filesInfo[i], padding);
     }
 }
 
-std::string ListCommand::getLastModified(const struct stat &fileStat)
+CommonFileInfo ListCommand::setFileInfo(const struct stat& fileStat, const Path& entryPath)
 {
-    char buffer[30];
-    std::strftime(buffer, sizeof buffer, "%a %d %b %Y at %H:%M", std::localtime(&fileStat.st_mtimespec.tv_sec));
-
-    std::string lastModified = buffer;
-
-    return lastModified;
-}
-
-std::string ListCommand::getPermissions(const struct stat &fileStat)
-{
-    std::string permsAsString;
-    mode_t perm = fileStat.st_mode;
-    
-    // Check for directory
-    permsAsString += S_ISDIR(perm) ? "d" : "-";
-    permsAsString += " ";
-
-    // Check for owner permissions
-    permsAsString += (perm & S_IRUSR) ? "r" : "-";
-    permsAsString += (perm & S_IWUSR) ? "w" : "-";
-    permsAsString += (perm & S_IXUSR) ? "x" : "-";
-    permsAsString += " ";
-
-    // Check for group permissions
-    permsAsString += (perm & S_IRGRP) ? "r" : "-";
-    permsAsString += (perm & S_IWGRP) ? "w" : "-";
-    permsAsString += (perm & S_IXGRP) ? "x" : "-";
-    permsAsString += " ";
-
-    // Check for other permissions
-    permsAsString += (perm & S_IROTH) ? "r" : "-";
-    permsAsString += (perm & S_IWOTH) ? "w" : "-";
-    permsAsString += (perm & S_IXOTH) ? "x" : "-";
-
-    return permsAsString;
-}
-
-FileInfo ListCommand::setFileInfo(const struct stat& fileStat, const Path& entryPath)
-{
-    FileInfo info;
+    CommonFileInfo info;
     // Get permissions for the file
-    info.permissions = getPermissions(fileStat);
+    info.permissions = Command::getPermissions(fileStat);
     // Get number of hard links to the file
     info.numLinks = std::to_string(static_cast<int>(fileStat.st_nlink));
     // Get number of hard links to the file
@@ -172,7 +109,7 @@ FileInfo ListCommand::setFileInfo(const struct stat& fileStat, const Path& entry
     info.size = std::to_string(totalSize);
 
     // Get time and date of last modification
-    info.lastModified = getLastModified(fileStat);
+    info.lastModified = Command::getLastModified(fileStat);
     // Get file name from path
     info.name = entryPath.filename();
 

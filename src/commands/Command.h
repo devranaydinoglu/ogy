@@ -23,6 +23,32 @@ struct CommandInfo
     int numFlags;
 };
 
+/**
+* Used to store data of a file
+*/
+struct CommonFileInfo
+{
+    std::string permissions;
+    std::string numLinks;
+    std::string owner;
+    std::string size;
+    std::string lastModified;
+    std::string name;
+};
+
+/**
+* Used to add padding to the command output. Holds the max number of characters between the info and its corresponding header
+*/
+struct CommonFileInfoPadding
+{
+    int permissionsPadding;
+    int numLinksPadding;
+    int ownerPadding;
+    int sizePadding;
+    int lastModifiedPadding;
+    int namePadding;
+};
+
 class Command
 {
 public:
@@ -56,6 +82,11 @@ protected:
     virtual void execute() {};
     virtual bool hasValidArgsAndFlags() {return false;};
     bool containsFlag(std::string_view flag);
+    static void printCommonHeaders(const CommonFileInfoPadding& infoPadding);
+    static void printCommonFileInfo(const CommonFileInfo& info, const CommonFileInfoPadding& infoPadding);
+    static CommonFileInfoPadding getCommonFileInfoPadding(const CommonFileInfo& info);
+    static std::string getLastModified(const struct stat& fileStat);
+    static std::string getPermissions(const struct stat& fileStat);
 
 private:
     void setArgsAndFlags();
