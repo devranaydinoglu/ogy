@@ -34,7 +34,7 @@ void HelpCommand::execute()
     Printer::print("Find all files in the current directory which include `term` in their file name.", 0, TextColor::WHITE, TextEmphasis::NORMAL);
     std::cout << "\n\n";
     Printer::print("`cd {path} {alias}` - ", 0, TextColor::WHITE, TextEmphasis::BOLD);
-    Printer::print("Change directory. If the alias exists, got to the alias' path. Else, store the path as alias in the config file and go to the alias' path.", 0, TextColor::WHITE, TextEmphasis::NORMAL);
+    Printer::print("Change directory. If the alias exists, go to the alias' path. Else, store the path as alias in the config file and go to the alias' path.", 0, TextColor::WHITE, TextEmphasis::NORMAL);
     std::cout << "\n\n";
     Printer::print("`create {template name}` - ", 0, TextColor::WHITE, TextEmphasis::BOLD);
     Printer::print("Create a new project directory based on the project structure in the specified template's config file.", 0, TextColor::WHITE, TextEmphasis::NORMAL);
