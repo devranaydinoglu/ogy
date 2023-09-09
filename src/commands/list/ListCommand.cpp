@@ -18,7 +18,7 @@ ListCommand::ListCommand(int argc, char** argv)
     commandInfo.name = "list";
     commandInfo.description = "List info about items in the current directory. Include the `-all` flag to include hidden items.";
     commandInfo.numArgs = 0;
-    commandInfo.numFlags = 1;
+    commandInfo.numFlags = 2;
 }
 
 void ListCommand::execute()
@@ -52,21 +52,29 @@ void ListCommand::execute()
     Printer::print("Current Path: ", 0, TextColor::GRAY, TextEmphasis::NORMAL);
     Printer::print(currentPath.string() + "\n", 0, TextColor::WHITE, TextEmphasis::NORMAL);
 
-    CommonFileInfoPadding padding;
-    
+    CommonFileInfoPadding tempPadding;
+    CommonFileInfoPadding padding = {};
+
     // Get the length of the longest string to set the width of each column (to line them up)
     for (const auto& info : filesInfo)
     {
-        padding = Command::getCommonFileInfoPadding(info);
+        tempPadding = Command::getCommonFileInfoPadding(info);
+
+        if (tempPadding.lastModifiedPadding > padding.lastModifiedPadding) padding.lastModifiedPadding = tempPadding.lastModifiedPadding;
+        if (tempPadding.namePadding > padding.namePadding) padding.namePadding = tempPadding.namePadding;
+        if (tempPadding.numLinksPadding > padding.numLinksPadding) padding.numLinksPadding = tempPadding.numLinksPadding;
+        if (tempPadding.ownerPadding > padding.ownerPadding) padding.ownerPadding = tempPadding.ownerPadding;
+        if (tempPadding.permissionsPadding > padding.permissionsPadding) padding.permissionsPadding = tempPadding.permissionsPadding;
+        if (tempPadding.sizePadding > padding.sizePadding) padding.sizePadding = tempPadding.sizePadding;
     }
 
     // Print headers
-    Printer::print(" ", 2 + 2, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print(" ", defaultPadding + 2, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
     Command::printCommonHeaders(padding);
 
     for (size_t i = 0; i < filesInfo.size(); i++)
     {
-        Printer::print(std::to_string(i + 1), 2 + 2, TextColor::GRAY, TextEmphasis::BOLD);
+        Printer::print(std::to_string(i + 1), defaultPadding + 2, TextColor::GRAY, TextEmphasis::BOLD);
         
         // Print info of each header
         Command::printCommonFileInfo(filesInfo[i], padding);
@@ -87,7 +95,7 @@ CommonFileInfo ListCommand::setFileInfo(const struct stat& fileStat, const Path&
     off_t totalSize = 0;
     mode_t perm = fileStat.st_mode;
 
-    if (S_ISDIR(perm))
+    if (S_ISDIR(perm) && containsFlag("-rec"))
     {
         for (const auto& entry : RecDirIterator(entryPath, std::filesystem::directory_options::skip_permission_denied))
         {
