@@ -10,21 +10,13 @@
 #include "../printer/Printer.h"
 
 Command::Command(int argc, char** argv)
-    : errorMessage(""), commandInfo()
+    : commandInfo(), errorMessage("")
 {
     this->argc = argc;
     this->argv = argv;
 
     command = argv[1];
     setArgsAndFlags();
-
-    // std::cout << "------------------------------\n";
-    // std::cout << "Command:\n";
-    // std::cout << "Number of command arguments passed:" << argc - 1 << "\n";
-    // std::cout << "command: " << command << "\n";
-    // for (int i = 0; i < args.size(); i++) std::cout << "args: " << args[i] << "\n";
-    // for (int i = 0; i < flags.size(); i++) std::cout << "flags: " << flags[i] << "\n";
-    // std::cout << "------------------------------\n\n";
 }
 
 void Command::determineCommand()
@@ -119,27 +111,23 @@ bool Command::containsFlag(std::string_view flag)
 
 void Command::printCommonHeaders(const CommonFileInfoPadding& infoPadding)
 {
-    int padding = 2;
-
-    Printer::print("Permissions", infoPadding.permissionsPadding + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("Links", infoPadding.numLinksPadding + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("Owner", infoPadding.ownerPadding + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("Size",  infoPadding.sizePadding + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    Printer::print("Last Modified", infoPadding.lastModifiedPadding + padding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Permissions", infoPadding.permissionsPadding + defaultPadding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Links", infoPadding.numLinksPadding + defaultPadding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Owner", infoPadding.ownerPadding + defaultPadding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Size",  infoPadding.sizePadding + defaultPadding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Printer::print("Last Modified", infoPadding.lastModifiedPadding + defaultPadding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
     Printer::print("File Name", infoPadding.namePadding, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
-    std::cout << std::endl;
+    std::cout << "\n";
 }
 
 void Command::printCommonFileInfo(const CommonFileInfo& info, const CommonFileInfoPadding& infoPadding)
 {
-    int padding = 2;
-    std::cout << infoPadding.sizePadding;
-    Printer::print(info.permissions, infoPadding.permissionsPadding + padding, TextColor::GREEN, TextEmphasis::BOLD);
-    Printer::print(info.numLinks, infoPadding.numLinksPadding + padding, TextColor::MAGENTA, TextEmphasis::BOLD);
-    Printer::print(info.owner, infoPadding.ownerPadding + padding, TextColor::CYAN, TextEmphasis::BOLD);
-    Printer::print(info.size, infoPadding.sizePadding + padding, TextColor::YELLOW, TextEmphasis::BOLD);
-    Printer::print(info.lastModified, infoPadding.lastModifiedPadding + padding, TextColor::GREEN, TextEmphasis::BOLD);
-    Printer::print(info.name, infoPadding.namePadding + padding, TextColor::MAGENTA, TextEmphasis::BOLD);
+    Printer::print(info.permissions, infoPadding.permissionsPadding + defaultPadding, TextColor::GREEN, TextEmphasis::BOLD);
+    Printer::print(info.numLinks, infoPadding.numLinksPadding + defaultPadding, TextColor::MAGENTA, TextEmphasis::BOLD);
+    Printer::print(info.owner, infoPadding.ownerPadding + defaultPadding, TextColor::CYAN, TextEmphasis::BOLD);
+    Printer::print(info.size, infoPadding.sizePadding + defaultPadding, TextColor::YELLOW, TextEmphasis::BOLD);
+    Printer::print(info.lastModified, infoPadding.lastModifiedPadding + defaultPadding, TextColor::GREEN, TextEmphasis::BOLD);
+    Printer::print(info.name, infoPadding.namePadding, TextColor::MAGENTA, TextEmphasis::BOLD);
     std::cout << "\n";
 }
 

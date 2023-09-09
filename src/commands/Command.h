@@ -70,6 +70,7 @@ protected:
     std::vector<std::string> args; 
     std::vector<std::string> flags;
     std::string errorMessage;
+    static const int defaultPadding = 2;
 
     // These need to be stored to pass them to child classes
     int argc;
