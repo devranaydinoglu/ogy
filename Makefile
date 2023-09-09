@@ -153,6 +153,30 @@ src/commands/Command.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/Command.cpp.s
 .PHONY : src/commands/Command.cpp.s
 
+src/commands/find/FindCommand.o: src/commands/find/FindCommand.cpp.o
+.PHONY : src/commands/find/FindCommand.o
+
+# target to build an object file
+src/commands/find/FindCommand.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/find/FindCommand.cpp.o
+.PHONY : src/commands/find/FindCommand.cpp.o
+
+src/commands/find/FindCommand.i: src/commands/find/FindCommand.cpp.i
+.PHONY : src/commands/find/FindCommand.i
+
+# target to preprocess a source file
+src/commands/find/FindCommand.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/find/FindCommand.cpp.i
+.PHONY : src/commands/find/FindCommand.cpp.i
+
+src/commands/find/FindCommand.s: src/commands/find/FindCommand.cpp.s
+.PHONY : src/commands/find/FindCommand.s
+
+# target to generate assembly for a file
+src/commands/find/FindCommand.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ogy.dir/build.make CMakeFiles/ogy.dir/src/commands/find/FindCommand.cpp.s
+.PHONY : src/commands/find/FindCommand.cpp.s
+
 src/commands/help/HelpCommand.o: src/commands/help/HelpCommand.cpp.o
 .PHONY : src/commands/help/HelpCommand.o
 
@@ -261,6 +285,9 @@ help:
 	@echo "... src/commands/Command.o"
 	@echo "... src/commands/Command.i"
 	@echo "... src/commands/Command.s"
+	@echo "... src/commands/find/FindCommand.o"
+	@echo "... src/commands/find/FindCommand.i"
+	@echo "... src/commands/find/FindCommand.s"
 	@echo "... src/commands/help/HelpCommand.o"
 	@echo "... src/commands/help/HelpCommand.i"
 	@echo "... src/commands/help/HelpCommand.s"
