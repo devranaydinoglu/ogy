@@ -7,6 +7,7 @@
 #include "./list/ListCommand.h"
 #include "./help/HelpCommand.h"
 #include "./find/FindCommand.h"
+#include "./change_directory/ChangeDirectoryCommand.h"
 #include "../printer/Printer.h"
 
 Command::Command(int argc, char** argv)
@@ -44,7 +45,18 @@ void Command::determineCommand()
         case CommandType::CREATE:
             break;
         case CommandType::CD:
-            break;
+            {
+                ChangeDirectoryCommand cdCom(argc, argv);
+
+                if (!cdCom.hasValidArgsAndFlags())
+            {
+                std::cout << cdCom.errorMessage;
+                return;
+            }
+            
+            cdCom.execute();
+            return;
+            }
         case CommandType::INFO:
         {
             InfoCommand infoCom(argc, argv);
