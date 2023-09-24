@@ -13,6 +13,9 @@ set(SOURCE_FILES
     src/commands/list/ListCommand.cpp
     src/commands/help/HelpCommand.cpp
     src/commands/find/FindCommand.cpp
+    src/commands/change_directory/ChangeDirectoryCommand.cpp
 )
 
-add_executable(ogy ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+message("source dir: ${CMAKE_SOURCE_DIR}")
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
