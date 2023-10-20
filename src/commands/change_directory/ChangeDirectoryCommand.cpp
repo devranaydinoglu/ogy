@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sys/errno.h>
 #include <sys/stat.h>
+#include <pwd.h>
 
 #include "rapidjson/filereadstream.h"
 #include "ChangeDirectoryCommand.h"
@@ -19,7 +20,19 @@ ChangeDirectoryCommand::ChangeDirectoryCommand(int argc, char** argv)
 void ChangeDirectoryCommand::execute()
 {
     rj::Document doc;
-    readConfigFile(doc, "ExampleConfig.json");
+    struct stat configFileStat;
+    
+    struct passwd* user = getpwuid(getuid());
+    std::string configFilePath = std::string(user->pw_dir) + "/.local/bin/ogy/config.json";
+
+    // Check if the config file exists at the install directory
+    if (stat(configFilePath.c_str(), &configFileStat) != 0)
+    {
+        std::cout << "Config file error: " << strerror(errno) << "\n";
+        return;
+    }
+
+    readConfigFile(doc, configFilePath.c_str());
     assert(doc.IsObject());
 
     determineArgs(doc);
@@ -27,27 +40,28 @@ void ChangeDirectoryCommand::execute()
     bool hasAlias = !alias.empty();
     bool hasPath = !path.empty();
 
+    std::string newPath = getCurrentPath() + "/" + path;
+
     if (args.size() == 1)
     {
         if (hasAlias)
         {
             if (containsKey(doc.GetObject(), alias.c_str()))
             {
-                std::string cmd = "cd " + recursiveValueSearch(doc.GetObject(), alias.c_str());
-                system(cmd.c_str());
+                std::cout << recursiveValueSearch(doc.GetObject(), alias.c_str()) << "\n";
                 return;
             }
-            std::cout << "Alias not found in config file\n";
+            std::cout << "Invalid alias or path";
         }
 
         if (hasPath)
         {
-            if (isValidPath(getCurrentPath() + "/" + path))
+            if (isValidPath(newPath))
             {
-                std::cout << "1. Path: change dir\n";
+                std::cout << newPath;
                 return;
             }
-            std::cout << "Invalid path\n";
+            std::cout << "Invalid alias or path";
         }
     }
     else if (args.size() == 2)
@@ -56,7 +70,7 @@ void ChangeDirectoryCommand::execute()
         {
             if (containsKey(doc.GetObject(), alias.c_str()))
             {
-                if (isValidPath(getCurrentPath() + "/" + path))
+                if (isValidPath(newPath))
                 {
                     std::cout << "2. Path: change dir and update config\n";
                     return;
@@ -65,7 +79,7 @@ void ChangeDirectoryCommand::execute()
             }
             else
             {
-                if (isValidPath(getCurrentPath() + "/" + path))
+                if (isValidPath(newPath))
                 {
                     std::cout << "2. Add alias and path to config\n";
                     return;
@@ -139,12 +153,16 @@ void ChangeDirectoryCommand::determineArgs(const rj::Document& doc)
 
 void ChangeDirectoryCommand::readConfigFile(rj::Document& doc, const char* fileName)
 {
-    FILE* fp = fopen(fileName, "r");
+    FILE* file = fopen(fileName, "r");
+    
+    fseek(file, 0, SEEK_END);
+    int fileSize = ftell(file);
+    fseek(file, 0, SEEK_SET);
 
-    char buffer[65536];
-    rj::FileReadStream is(fp, buffer, sizeof(buffer));
+    char buffer[fileSize];
+    rj::FileReadStream frs(file, buffer, sizeof(buffer));
 
-    doc.ParseStream(is);
+    doc.ParseStream(frs);
 }
 
 std::string ChangeDirectoryCommand::recursiveValueSearch(const rj::Value &val, const char *key)
