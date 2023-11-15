@@ -28,29 +28,37 @@ void ListCommand::execute()
     
     std::vector<CommonFileInfo> filesInfo;
 
-    for (const auto& entry : DirIterator(currentPath, std::filesystem::directory_options::skip_permission_denied))
+    auto it = DirIterator(currentPath, std::filesystem::directory_options::skip_permission_denied);
+    try
     {
-        struct stat fileStat;
-        
-        // Check if valid file info has been returned
-        if (stat(entry.path().c_str(), &fileStat) != 0)
+        for (auto i = std::filesystem::begin(it); i != std::filesystem::end(it); i++)
         {
-            std::cout << "Error: " << strerror(errno) << "\n";
-            return;
+            auto entry = *i;
+
+            struct stat fileStat;
+            
+            // Check if valid file info has been returned
+            if (stat(entry.path().c_str(), &fileStat) != 0)
+            {
+                std::cout << "Error: " << strerror(errno) << "\n";
+                return;
+            }
+            
+            std::string fileName = entry.path().filename();
+            if (fileName[0] == '.' && !containsFlag("-all")) continue;
+
+            filesInfo.emplace_back(setFileInfo(fileStat, entry.path()));
         }
-        
-        std::string fileName = entry.path().filename();
-
-        if (fileName[0] == '.' && !containsFlag("-all")) continue;
-
-        filesInfo.emplace_back(setFileInfo(fileStat, entry.path()));
-
+    }
+    catch (const std::filesystem::filesystem_error& e)
+    {
+        std::cerr << e.what() << '\n';
     }
 
     if (filesInfo.size() < 1) return;
 
-    Printer::print("Current Path: ", 0, TextColor::GRAY, TextEmphasis::NORMAL);
-    Printer::print(currentPath.string() + "\n", 0, TextColor::WHITE, TextEmphasis::NORMAL);
+    Printer::print("Current Path: ", 0, TextColor::GRAY, TextEmphasis::BOLD);
+    Printer::print(currentPath.string() + "\n", 0, TextColor::WHITE, TextEmphasis::BOLD);
 
     CommonFileInfoPadding tempPadding;
     CommonFileInfoPadding padding = {};
@@ -97,16 +105,26 @@ CommonFileInfo ListCommand::setFileInfo(const struct stat& fileStat, const Path&
 
     if (S_ISDIR(perm) && containsFlag("-rec"))
     {
-        for (const auto& entry : RecDirIterator(entryPath, std::filesystem::directory_options::skip_permission_denied))
+        auto it = RecDirIterator(entryPath, std::filesystem::directory_options::skip_permission_denied);
+        try
         {
-            struct stat fileStat;
-
-            // Check if valid file info has been returned
-            if (stat(entry.path().c_str(), &fileStat) != 0)
+            for (auto i = std::filesystem::begin(it); i != std::filesystem::end(it); i++)
             {
-                break;
+                auto entry = *i;
+
+                struct stat fileStat;
+
+                // Check if valid file info has been returned
+                if (stat(entry.path().c_str(), &fileStat) != 0)
+                {
+                    break;
+                }
+                totalSize += fileStat.st_size;
             }
-            totalSize += fileStat.st_size;
+        }
+        catch(std::filesystem::filesystem_error& e)
+        {
+            std::cerr << e.what() << '\n';
         }
     }
     else

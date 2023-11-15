@@ -89,17 +89,28 @@ CommonFileInfo InfoCommand::setFileInfo(const struct stat& fileStat)
 
     if (S_ISDIR(perm) && containsFlag("-rec"))
     {
-        for (const auto& entry : RecDirIterator(filePath, std::filesystem::directory_options::skip_permission_denied))
+        auto it = RecDirIterator(filePath, std::filesystem::directory_options::skip_permission_denied);
+        try
         {
-            struct stat fileStat;
-
-            // Check if valid file info has been returned
-            if (stat(entry.path().c_str(), &fileStat) != 0)
+            for (auto i = std::filesystem::begin(it); i != std::filesystem::end(it); i++)
             {
-                break;
+                auto entry = *i;
+                
+                struct stat fileStat;
+
+                // Check if valid file info has been returned
+                if (stat(entry.path().c_str(), &fileStat) != 0)
+                {
+                    break;
+                }
+                totalSize += fileStat.st_size; 
             }
-            totalSize += fileStat.st_size; 
         }
+        catch(std::filesystem::filesystem_error& e)
+        {
+            std::cerr << e.what() << '\n';
+        }
+        
     }
     else
     {
