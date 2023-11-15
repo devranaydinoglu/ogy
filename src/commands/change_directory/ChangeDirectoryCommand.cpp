@@ -6,6 +6,8 @@
 #include <pwd.h>
 
 #include "rapidjson/filereadstream.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/prettywriter.h"
 #include "ChangeDirectoryCommand.h"
 
 ChangeDirectoryCommand::ChangeDirectoryCommand(int argc, char** argv)
@@ -23,7 +25,7 @@ void ChangeDirectoryCommand::execute()
     struct stat configFileStat;
     
     struct passwd* user = getpwuid(getuid());
-    std::string configFilePath = std::string(user->pw_dir) + "/.local/bin/ogy/config.json";
+    configFilePath = std::string(user->pw_dir) + "/.local/bin/ogy/config.json";
 
     // Check if the config file exists at the install directory
     if (stat(configFilePath.c_str(), &configFileStat) != 0)
@@ -44,6 +46,7 @@ void ChangeDirectoryCommand::execute()
 
     if (args.size() == 1)
     {
+        // Alias was provided, so check if it exists in the config file
         if (hasAlias)
         {
             if (containsKey(doc.GetObject(), alias.c_str()))
@@ -54,6 +57,7 @@ void ChangeDirectoryCommand::execute()
             std::cout << "Invalid alias or path";
         }
 
+        // Path was provided, so change to specified path
         if (hasPath)
         {
             if (isValidPath(newPath))
@@ -70,22 +74,36 @@ void ChangeDirectoryCommand::execute()
         {
             if (containsKey(doc.GetObject(), alias.c_str()))
             {
+                // Alias exists, so update its path in the config file and change to dir
                 if (isValidPath(newPath))
                 {
-                    std::cout << "2. Path: change dir and update config\n";
-                    return;
+                    if (doc.HasMember("paths") && doc["paths"].IsArray())
+                    {
+                        updatePathInConfig(doc, newPath);
+                    }
                 }
                 std::cout << "Invalid path\n";
+                return;
             }
             else
             {
+                // Alias doesn't exist, so add it to the config file with the specified path and change to dir
                 if (isValidPath(newPath))
                 {
-                    std::cout << "2. Add alias and path to config\n";
+                    addPathToConfig(doc, newPath);
                     return;
                 }
                 std::cout << "Invalid path\n";
+                return;
             }
+        }
+        else if (!hasPath)
+        {
+            std::cout << "Invalid path";
+        }
+        else
+        {
+            std::cout << "Invalid path";
         }
     }
     else
@@ -163,6 +181,7 @@ void ChangeDirectoryCommand::readConfigFile(rj::Document& doc, const char* fileN
     rj::FileReadStream frs(file, buffer, sizeof(buffer));
 
     doc.ParseStream(frs);
+    fclose(file);
 }
 
 std::string ChangeDirectoryCommand::recursiveValueSearch(const rj::Value &val, const char *key)
@@ -232,45 +251,6 @@ bool ChangeDirectoryCommand::containsKey(const rj::Value &val, const char *key)
     return false;
 }
 
-bool ChangeDirectoryCommand::containsValue(const rj::Value &val, const char *value)
-{
-    for (const auto& v : val.GetObject())
-    {
-        std::string stringVal = "";
-        if (v.value.IsString())
-        {
-            stringVal = v.value.GetString();
-        }
-        if (v.value.IsBool())
-        {
-            stringVal = std::to_string(v.value.GetBool());
-        }
-        if (v.value.IsInt())
-        {
-            stringVal = std::to_string(v.value.GetInt());
-        }
-        if (stringVal == value)
-        {
-            return true;
-        }
-
-        if (v.value.IsObject())
-        {
-            bool found = containsValue(v.value.GetObject(), value);
-            if (found) return true;
-        }
-        if (v.value.IsArray())
-        {
-            for (const auto& elem : v.value.GetArray())
-            {
-                bool found = containsValue(elem.GetObject(), value);
-                if (found) return true;
-            }
-        }
-    }
-    return false;
-}
-
 bool ChangeDirectoryCommand::isValidPath(std::string path)
 {
     bool isValidDir = false;
@@ -296,4 +276,64 @@ std::string ChangeDirectoryCommand::getCurrentPath()
     }
 
     return std::string(currentDir);
+}
+
+void ChangeDirectoryCommand::updatePathInConfig(rj::Document& doc, std::string newPath)
+{
+    auto pathsArr = doc["paths"].GetArray();
+
+    for (auto& obj : pathsArr)
+    {
+        if (obj.IsObject())
+        {
+            if (obj.HasMember(alias.c_str()))
+            {
+                auto itr = obj.GetObject().FindMember(alias.c_str());
+                itr->value.SetString(newPath.c_str(), doc.GetAllocator());
+                jsonToFile(doc, configFilePath);
+
+                std::cout << newPath;
+                return;
+            }
+        }
+    }
+}
+
+void ChangeDirectoryCommand::addPathToConfig(rj::Document &doc, std::string newPath)
+{
+    rj::Document::AllocatorType& allocator = doc.GetAllocator();
+
+    // Create new object to add to paths array
+    rj::Value newObj(rj::kObjectType);
+    rj::Value key(alias.c_str(), allocator);
+    rj::Value value(newPath.c_str(), allocator);
+    newObj.AddMember(key, value, allocator);
+
+    doc["paths"].PushBack(newObj, allocator);
+    jsonToFile(doc, configFilePath);
+
+    std::cout << newPath;
+    return;
+}
+
+void ChangeDirectoryCommand::jsonToFile(rj::Document& doc, std::string_view fullpath)
+{
+    std::ofstream outputFile;
+    outputFile.open(fullpath);
+
+    if(outputFile.is_open()) {
+        std::string jsonObjectData = jsonToString(doc);
+        outputFile << jsonObjectData;
+    }
+
+    outputFile.close();
+}
+
+std::string ChangeDirectoryCommand::jsonToString(rj::Document& doc)
+{
+	rj::StringBuffer buffer;
+	rj::PrettyWriter<rj::StringBuffer> jsonWriter(buffer);
+	doc.Accept(jsonWriter);
+
+	return buffer.GetString();
 }

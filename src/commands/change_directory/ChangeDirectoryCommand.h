@@ -12,6 +12,7 @@ class ChangeDirectoryCommand : public Command
 private:
     std::string alias;
     std::string path;
+    std::string configFilePath;
 
 public:
     ChangeDirectoryCommand(int argc, char** argv);
@@ -32,7 +33,10 @@ private:
     std::string recursiveValueSearch(const rj::Value& val, const char* key);
 
     bool containsKey(const rj::Value& val, const char* key);
-    bool containsValue(const rj::Value& val, const char* value);
     bool isValidPath(std::string addedPath);
     std::string getCurrentPath();
+    void updatePathInConfig(rj::Document& doc, std::string newPath);
+    void addPathToConfig(rj::Document& doc, std::string newPath);
+    void jsonToFile(rj::Document& doc, std::string_view fullpath);
+    std::string jsonToString(rj::Document& doc);
 };
