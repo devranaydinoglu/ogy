@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "commands/Command.h"
+#include <benchmark/benchmark.h>
 
 int main(int argc, char** argv)
 {
@@ -16,3 +17,6 @@ int main(int argc, char** argv)
     }
 
 }
+
+//Google Benchmark's main function
+// BENCHMARK_MAIN();
