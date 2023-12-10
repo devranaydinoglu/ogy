@@ -7,7 +7,6 @@
 #include <filesystem>
 
 #include "InfoCommand.h"
-#include "../../utils/Math.h"
 #include "../../printer/Printer.h"
 
 using DirIterator = std::filesystem::directory_iterator;
