@@ -5,7 +5,7 @@ project(ogy)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES 
+set(SOURCES 
     src/ogy.cpp
     src/commands/Command.cpp
     src/commands/info/InfoCommand.cpp
@@ -15,6 +15,9 @@ set(SOURCE_FILES
     src/commands/change_directory/ChangeDirectoryCommand.cpp
 )
 
-add_executable(${PROJECT_NAME} ${SOURCE_FILES})
+add_executable(${PROJECT_NAME} ${SOURCES})
+
+find_package(benchmark REQUIRED)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(${PROJECT_NAME} benchmark::benchmark)
