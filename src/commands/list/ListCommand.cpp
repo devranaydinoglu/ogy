@@ -4,10 +4,14 @@
 #include <sys/stat.h>
 #include <pwd.h>
 #include <vector>
+#include <thread>
+#include <future>
+#include <mutex>
 
 #include "ListCommand.h"
 #include "../info/InfoCommand.h"
 #include "../../printer/Printer.h"
+#include "../../utils/ThreadPool.h"
 
 using DirIterator = std::filesystem::directory_iterator;
 using RecDirIterator = std::filesystem::recursive_directory_iterator;
@@ -23,14 +27,18 @@ ListCommand::ListCommand(int argc, char** argv)
 
 void ListCommand::execute()
 {
-    Path currentPath = std::filesystem::current_path();
+    // Path currentPath = std::filesystem::current_path();
     bool printHeader = true;
+    std::string strCurrentPath = "/Users/devranaydinoglu/Documents/School";
+    Path currentPath = strCurrentPath;
     
     std::vector<CommonFileInfo> filesInfo;
 
     auto it = DirIterator(currentPath, std::filesystem::directory_options::skip_permission_denied);
     try
     {
+        CommonFileInfo fileInfo;
+
         for (auto i = std::filesystem::begin(it); i != std::filesystem::end(it); i++)
         {
             auto entry = *i;
@@ -47,7 +55,9 @@ void ListCommand::execute()
             std::string fileName = entry.path().filename();
             if (fileName[0] == '.' && !containsFlag("-all")) continue;
 
-            filesInfo.emplace_back(setFileInfo(fileStat, entry.path()));
+            Path entryPath = entry.path();            
+            setFileInfo(fileStat, entryPath, fileInfo);
+            filesInfo.emplace_back(fileInfo);
         }
     }
     catch (const std::filesystem::filesystem_error& e)
@@ -89,9 +99,85 @@ void ListCommand::execute()
     }
 }
 
-CommonFileInfo ListCommand::setFileInfo(const struct stat& fileStat, const Path& entryPath)
+void ListCommand::execute_mt()
 {
-    CommonFileInfo info;
+    Path currentPath = std::filesystem::current_path();
+    bool printHeader = true;
+    // std::string strCurrentPath = "/Users/devranaydinoglu/Documents/School";
+    // Path currentPath = strCurrentPath;
+
+    std::vector<CommonFileInfo> filesInfo;
+    uint16_t filesInfoIndex = 0;
+    ThreadPool tp;
+
+    auto it = DirIterator(currentPath, std::filesystem::directory_options::skip_permission_denied);
+    try
+    {
+        for (auto i = std::filesystem::begin(it); i != std::filesystem::end(it); i++)
+        {
+            auto entry = *i;
+
+            struct stat fileStat;
+            
+            // Check if valid file info has been returned
+            if (stat(entry.path().c_str(), &fileStat) != 0)
+            {
+                std::cout << "Error: " << strerror(errno) << "\n";
+                return;
+            }
+            
+            std::string fileName = entry.path().filename();
+            if (fileName[0] == '.' && !containsFlag("-all")) continue;
+            
+            CommonFileInfo fileInfo;
+            filesInfo.emplace_back(fileInfo);
+
+            Path entryPath = entry.path();
+            tp.addTask([this, fileStat, entryPath, &filesInfo, filesInfoIndex](){this->setFileInfo(fileStat, entryPath, filesInfo.at(filesInfoIndex));});
+            filesInfoIndex++;
+        }
+    }
+    catch (const std::filesystem::filesystem_error& e)
+    {
+        std::cerr << e.what() << "jgmfnsbdmnds\n";
+    }
+
+    if (filesInfo.size() < 1) return;
+
+    Printer::print("Current Path: ", 0, TextColor::GRAY, TextEmphasis::BOLD);
+    Printer::print(currentPath.string() + "\n", 0, TextColor::WHITE, TextEmphasis::BOLD);
+
+    CommonFileInfoPadding tempPadding;
+    CommonFileInfoPadding padding = {};
+
+    // Get the length of the longest string to set the width of each column (to line them up)
+    for (const auto& info : filesInfo)
+    {
+        tempPadding = Command::getCommonFileInfoPadding(info);
+
+        if (tempPadding.lastModifiedPadding > padding.lastModifiedPadding) padding.lastModifiedPadding = tempPadding.lastModifiedPadding;
+        if (tempPadding.namePadding > padding.namePadding) padding.namePadding = tempPadding.namePadding;
+        if (tempPadding.numLinksPadding > padding.numLinksPadding) padding.numLinksPadding = tempPadding.numLinksPadding;
+        if (tempPadding.ownerPadding > padding.ownerPadding) padding.ownerPadding = tempPadding.ownerPadding;
+        if (tempPadding.permissionsPadding > padding.permissionsPadding) padding.permissionsPadding = tempPadding.permissionsPadding;
+        if (tempPadding.sizePadding > padding.sizePadding) padding.sizePadding = tempPadding.sizePadding;
+    }
+
+    // Print headers
+    Printer::print(" ", defaultPadding + 2, TextColor::GRAY, TextEmphasis::BOLD_UNDERLINED);
+    Command::printCommonHeaders(padding);
+
+    for (size_t i = 0; i < filesInfo.size(); i++)
+    {
+        Printer::print(std::to_string(i + 1), defaultPadding + 2, TextColor::GRAY, TextEmphasis::BOLD);
+        
+        // Print info of each header
+        Command::printCommonFileInfo(filesInfo[i], padding);
+    }
+}
+
+void ListCommand::setFileInfo(const struct stat& fileStat, const Path& entryPath, CommonFileInfo& info)
+{
     // Get permissions for the file
     info.permissions = Command::getPermissions(fileStat);
     // Get number of hard links to the file
@@ -138,8 +224,6 @@ CommonFileInfo ListCommand::setFileInfo(const struct stat& fileStat, const Path&
     info.lastModified = Command::getLastModified(fileStat);
     // Get file name from path
     info.name = entryPath.filename();
-
-    return info;
 }
 
 bool ListCommand::hasValidArgsAndFlags()
