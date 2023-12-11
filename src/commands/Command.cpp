@@ -80,7 +80,7 @@ void Command::determineCommand()
                 return;
             }
 
-            listCom.execute();
+            listCom.execute_mt();
             return;
         }
         case CommandType::FIND:
