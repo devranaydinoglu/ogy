@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <cstring>
 #include <iostream>
 #include <string>
 #include <sys/errno.h>
@@ -29,7 +30,7 @@ void InfoCommand::execute()
     // Check if valid file info has been returned
     if (stat(args[0].c_str(), &fileStat) != 0) 
     {
-        std::cout << "File error: " << strerror(errno) << "\n";
+        std::cout << "File error: " << std::strerror(errno) << "\n";
         return;
     }
 
