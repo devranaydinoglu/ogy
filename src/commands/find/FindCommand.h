@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <string>
 #include <filesystem>
 
@@ -47,7 +48,7 @@ private:
                 // Check if valid file info has been returned
                 if (stat(entry.path().c_str(), &fileStat) != 0)
                 {
-                    std::cout << "Error: " << strerror(errno) << "\n";
+                    std::cout << "Error: " << std::strerror(errno) << "\n";
                     return;
                 }
                 
