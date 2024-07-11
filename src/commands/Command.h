@@ -1,8 +1,9 @@
 #pragma once
 
-#include <string>
 #include <map>
+#include <string>
 #include <string_view>
+#include <vector>
 
 enum class CommandType
 {
@@ -52,10 +53,9 @@ struct CommonFileInfoPadding
 class Command
 {
 public:
-    // Command() {};
     Command(int argc, char** argv);
 
-    inline static std::map<std::string, CommandType> stringToCommandTypeMapping = {
+    std::map<std::string, CommandType> stringToCommandTypeMapping = {
         {"help", CommandType::HELP},
         {"create", CommandType::CREATE},
         {"cd", CommandType::CD},
