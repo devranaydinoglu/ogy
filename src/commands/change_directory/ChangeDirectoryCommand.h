@@ -37,6 +37,6 @@ private:
     std::string getCurrentPath();
     void updatePathInConfig(rj::Document& doc, std::string newPath);
     void addPathToConfig(rj::Document& doc, std::string newPath);
-    void jsonToFile(rj::Document& doc, std::string_view fullpath);
+    void jsonToFile(rj::Document& doc, std::string fullPath);
     std::string jsonToString(rj::Document& doc);
 };

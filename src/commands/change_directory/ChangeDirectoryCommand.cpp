@@ -4,6 +4,8 @@
 #include <sys/errno.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include <string>
+#include <string_view>
 
 #include "rapidjson/filereadstream.h"
 #include "rapidjson/stringbuffer.h"
@@ -316,10 +318,10 @@ void ChangeDirectoryCommand::addPathToConfig(rj::Document &doc, std::string newP
     return;
 }
 
-void ChangeDirectoryCommand::jsonToFile(rj::Document& doc, std::string_view fullpath)
+void ChangeDirectoryCommand::jsonToFile(rj::Document& doc, std::string fullPath)
 {
     std::ofstream outputFile;
-    outputFile.open(fullpath);
+    outputFile.open(fullPath);
 
     if(outputFile.is_open()) {
         std::string jsonObjectData = jsonToString(doc);
