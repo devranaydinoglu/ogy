@@ -27,8 +27,8 @@ void HelpCommand::execute()
     Printer::print("`ogy info {file name} (-rec)` - ", 0, TextColor::WHITE, TextEmphasis::BOLD);
     Printer::print("Show info about the specified file.", 0, TextColor::WHITE, TextEmphasis::NORMAL);
     std::cout << "\n\n";
-    Printer::print("`ogy ls (-all) (-rec)` - ", 0, TextColor::WHITE, TextEmphasis::BOLD);
-    Printer::print("List info about items in the current directory. Include the `-all` flag to include hidden items.", 0, TextColor::WHITE, TextEmphasis::NORMAL);
+    Printer::print("`ogy ls (-all) (-rec) (-mt)` - ", 0, TextColor::WHITE, TextEmphasis::BOLD);
+    Printer::print("List info about items in the current directory. Include the `-all` flag to include hidden items. Include the `-mt` flag to use mutlithreading.", 0, TextColor::WHITE, TextEmphasis::NORMAL);
     std::cout << "\n\n";
     Printer::print("`ogy find {term} (-rec)` - ", 0, TextColor::WHITE, TextEmphasis::BOLD);
     Printer::print("Find all files in the current directory which include `term` in their file name.", 0, TextColor::WHITE, TextEmphasis::NORMAL);
