@@ -10,6 +10,12 @@
 #include "./change_directory/ChangeDirectoryCommand.h"
 #include "../printer/Printer.h"
 
+#ifdef __APPLE__
+#ifndef st_mtime
+#define st_mtime st_mtimespec.tv_sec
+#endif
+#endif
+
 Command::Command(int argc, char** argv)
     : commandInfo(), errorMessage("")
 {
@@ -80,7 +86,7 @@ void Command::determineCommand()
                 return;
             }
 
-            listCom.execute_mt();
+            listCom.execute();
             return;
         }
         case CommandType::FIND:
@@ -159,10 +165,11 @@ CommonFileInfoPadding Command::getCommonFileInfoPadding(const CommonFileInfo& in
 
 std::string Command::getLastModified(const struct stat& fileStat)
 {
-    char buffer[30];
-    std::strftime(buffer, sizeof buffer, "%a %d %b %Y at %H:%M", std::localtime(&fileStat.st_mtimespec.tv_sec));
-
-    std::string lastModified = buffer;
+    std::string lastModified;
+    lastModified.resize(2048);
+    // char buffer[30];
+    auto const actualSize = std::strftime(lastModified.data(), lastModified.size(), "%a %d %b %Y at %H:%M", std::localtime(&fileStat.st_mtim.tv_sec));
+    lastModified.resize(actualSize);
 
     return lastModified;
 }
