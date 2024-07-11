@@ -1,6 +1,9 @@
 #pragma once
 
 #include <filesystem>
+#include <iostream>
+#include <sys/stat.h>
+#include <cstring>
 
 #include "../Command.h"
 #include <benchmark/benchmark.h>
@@ -14,6 +17,7 @@ class ListCommand : public Command
 public:
     ListCommand(int argc, char** argv);
     void execute() override;
+    void execute_st();
     void execute_mt();
     bool hasValidArgsAndFlags() override;
 
@@ -25,7 +29,7 @@ public:
         
         if (stat(currentPath.c_str(), &fileStat) != 0)
         {
-            std::cout << "Error: " << strerror(errno) << "\n";
+            std::cout << "Error: " << std::strerror(errno) << "\n";
             return;
         }
 
@@ -42,7 +46,7 @@ public:
     }
 
 private:
-    void setFileInfo(const struct stat& fileInfo, const Path& entryPath, CommonFileInfo& info);
+    CommonFileInfo setFileInfo(const struct stat& fileInfo, const Path& entryPath);
 };
 
 // Register as benchmark function for Google Benchmark
