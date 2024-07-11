@@ -1,28 +1,28 @@
 #pragma once
 
-#include <array>
 #include <atomic>
+#include <condition_variable>
 #include <cstdint>
-#include <filesystem>
+#include <exception>
 #include <functional>
-#include <iostream>
+#include <future>
+#include <memory>
 #include <mutex>
-#include <queue>
+#include "SafeQueue.h"
 #include <thread>
-
-#include "../commands/Command.h"
-
-using Path = std::filesystem::path;
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 class ThreadPool
 {
 private:
-    uint8_t numThreads = std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1;
-    std::atomic_bool enabled = true;
-    std::queue<std::function<void()>> tasks;
-    std::queue<std::thread> threads;
-    std::mutex tasksMutex;
-    
+    int numThreads = std::thread::hardware_concurrency() > 0 ? std::thread::hardware_concurrency() : 1;
+    std::vector<std::thread> threads;
+    std::atomic<bool> enabled = true;
+    SafeQueue<std::function<void()>> tasks;
+    std::atomic<int> numPendingTasks = 0;
+
 public:
     ThreadPool()
     {
@@ -30,7 +30,7 @@ public:
         {
             for (uint8_t i = 0; i < numThreads; i++)
             {
-                threads.push(std::thread(&ThreadPool::worker, this));
+                threads.emplace_back(std::thread(&ThreadPool::worker, this));
             }
         }
         catch(const std::exception& e)
@@ -44,13 +44,22 @@ public:
     ~ThreadPool()
     {
         enabled = false;
+        tasks.close();
         joinThreads();
     }
 
-    void addTask(std::function<void()> task)
+    template<typename Func, typename... Args>
+    auto addTask(Func&& f, Args&&... args)
     {
-        std::lock_guard<std::mutex> lg(tasksMutex);
-        tasks.push(task);
+        using ReturnType = typename std::invoke_result_t<Func>;
+        
+        auto task = std::make_shared<std::packaged_task<ReturnType()>>(std::bind(std::forward<Func>(f), std::forward<Args>(args)...));
+        std::future<ReturnType> resultFuture = task->get_future();
+
+        tasks.enqueue([task](){(*task)();});
+        numPendingTasks++;
+
+        return resultFuture;
     }
 
 private:
@@ -58,26 +67,25 @@ private:
     {
         while (enabled)
         {
-            std::lock_guard<std::mutex> lg(tasksMutex);
-            if (!tasks.empty())
-            {
-                std::function<void()> task = tasks.front();
-                tasks.pop();
-                task();
-            }
-            else
-            {
-                std::this_thread::yield();
-            }
+            std::function<void()> task;
+
+            auto taskOptional = tasks.dequeue();
+            if (!taskOptional.has_value())
+                continue;
+            
+            task = taskOptional.value();
+            task();
+            numPendingTasks--;
         }
     }
 
     void joinThreads()
     {
-        for (uint8_t i = 0; i < threads.size(); i++)
+        for (int i = 0; i < threads.size(); i++)
         {
-            threads.front().join();
-            threads.pop();
+            threads.at(i).join();
         }
+
+        threads.clear();
     }
 };
