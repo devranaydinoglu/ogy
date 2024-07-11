@@ -1,8 +1,7 @@
 #include <cstddef>
 #include <iostream>
-
 #include "commands/Command.h"
-#include <benchmark/benchmark.h>
+// #include <benchmark/benchmark.h>
 
 int main(int argc, char** argv)
 {
