@@ -4,9 +4,10 @@ cmake_minimum_required(VERSION 3.20)
 project(ogy)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(SOURCES 
-    src/ogy.cpp
+    src/Ogy.cpp
     src/commands/Command.cpp
     src/commands/info/InfoCommand.cpp
     src/commands/list/ListCommand.cpp
