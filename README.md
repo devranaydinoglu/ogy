@@ -10,6 +10,8 @@ Ogy is a CLI tool for Unix and Linux systems which offers new and improved, exis
     - [Find](#find)
     - [Change Directory](#change-directory)
 
+https://github.com/user-attachments/assets/b2257a9e-030c-43c5-9500-eb3fef720306
+
 ## Getting Started
 
 #### 1. Ensure CMake is installed
